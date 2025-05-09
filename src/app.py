@@ -85,7 +85,15 @@ def root():
 
 @app.get("/activities")
 def get_activities():
-    return activities
+    # Transform participants into a list of objects with an "email" property
+    formatted_activities = {
+        name: {
+            **details,
+            "participants": [{"email": email} for email in details["participants"]]
+        }
+        for name, details in activities.items()
+    }
+    return formatted_activities
 
 
 @app.post("/activities/{activity_name}/signup")
