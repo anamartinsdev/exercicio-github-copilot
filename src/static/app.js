@@ -8,23 +8,50 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchActivities() {
     try {
       const response = await fetch("/activities");
+      if (!response.ok) {
+        throw new Error("Failed to fetch activities");
+      }
+
       const activities = await response.json();
 
       // Clear loading message
       activitiesList.innerHTML = "";
+
+      // Function to create a participants list component
+      function createParticipantsList(participants) {
+        if (!Array.isArray(participants) || participants.length === 0) {
+          return "<p><strong>Participants:</strong> None</p>";
+        }
+
+        const participantsHTML = participants
+          .map((participant) => {
+            // Ensure participant has an email property
+            const email = participant.email || "No email provided";
+            return `<li>${email}</li>`;
+          })
+          .join("");
+
+        return `
+          <p><strong>Participants:</strong></p>
+          <ul class="participants-list">
+            ${participantsHTML}
+          </ul>
+        `;
+      }
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
 
-        const spotsLeft = details.max_participants - details.participants.length;
+        const spotsLeft = details.max_participants - (details.participants?.length || 0);
 
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          ${createParticipantsList(details.participants || [])}
         `;
 
         activitiesList.appendChild(activityCard);
